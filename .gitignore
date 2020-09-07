@@ -21,3 +21,9 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Go
+backend/backend
+backend/database.bbolt
+backend/go.sum
+backend/vendor
