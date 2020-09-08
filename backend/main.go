@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/sha1"
+	"encoding/base64"
 	"os"
 	"sort"
 	"strings"
@@ -60,6 +63,15 @@ func sign(timestamp, nonce, message string) string {
 	return fmt.Sprintf("%x", sha1.Sum([]byte(strings.Join(arr, ""))))
 }
 
+func decrypt(encrypted string) []byte {
+	bytes := []byte(encrypted)
+	key, _ := base64.StdEncoding.DecodeString(os.Getenv("WX_KEY"))
+	block, _ := aes.NewCipher(key)
+	decrypter := cipher.NewCBCDecrypter(block, key[:block.BlockSize()])
+	decrypter.CryptBlocks(bytes, bytes)
+	return bytes[:len(bytes)-int(bytes[len(bytes)-1])]
+}
+
 func wx(db *bbolt.DB, c echo.Context) error {
 	signature := c.QueryParam("signature")
 	timestamp := c.QueryParam("timestamp")
@@ -80,14 +92,12 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	m := WxEncrypted{}
 	c.Bind(&m)
 	if sign(timestamp, nonce, "") != signature {
-		fmt.Printf("Hello")
 		return c.NoContent(http.StatusOK)
 	}
 	if sign(timestamp, nonce, m.Encrypt) != msg_signature {
-		fmt.Printf("Hello1")
 		return c.NoContent(http.StatusOK)
 	}
-	fmt.Printf("Hello2")
+	fmt.Println(decrypt(m.Encrypt))
 	return c.NoContent(http.StatusOK)
 }
 
