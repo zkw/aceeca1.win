@@ -19,14 +19,8 @@ import (
 )
 
 type WxEncrypted struct {
-	encrypt_type  string
-	msg_signature string
-	nonce         string
-	openid        string
-	signature     string
-	timestamp     string
-	ToUserName    string
-	Encrypt       string
+	ToUserName string
+	Encrypt    string
 }
 
 func main() {
@@ -75,9 +69,15 @@ func wx(db *bbolt.DB, c echo.Context) error {
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
+	msg_signature := c.QueryParam("signature")
+	nonce := c.QueryParam("nonce")
+	openid := c.QueryParam("openid")
+	signature := c.QueryParam("signature")
+	timestamp := c.QueryParam("timestamp")
 	m := WxEncrypted{}
 	c.Bind(&m)
 	fmt.Println(m)
+	fmt.Println(c.QueryParams())
 	return c.NoContent(http.StatusOK)
 }
 
