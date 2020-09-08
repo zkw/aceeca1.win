@@ -53,31 +53,41 @@ func main() {
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
+func sign(timestamp, nonce, message string) string {
+	token := os.Getenv("WX_TOKEN")
+	arr := []string{token, timestamp, nonce, message}
+	sort.Strings(arr)
+	return fmt.Sprintf("%x", sha1.Sum([]byte(strings.Join(arr, ""))))
+}
+
 func wx(db *bbolt.DB, c echo.Context) error {
 	signature := c.QueryParam("signature")
 	timestamp := c.QueryParam("timestamp")
 	nonce := c.QueryParam("nonce")
 	echostr := c.QueryParam("echostr")
-	token := os.Getenv("WX_TOKEN")
-	arr := []string{token, timestamp, nonce}
-	sort.Strings(arr)
-	sha1Sum := fmt.Sprintf("%x", sha1.Sum([]byte(strings.Join(arr, ""))))
-	if sha1Sum != signature {
+	if sign(timestamp, nonce, "") != signature {
 		return c.NoContent(http.StatusOK)
 	}
 	return c.String(http.StatusOK, echostr)
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
-	// msg_signature := c.QueryParam("signature")
-	// nonce := c.QueryParam("nonce")
-	// openid := c.QueryParam("openid")
-	// signature := c.QueryParam("signature")
-	// timestamp := c.QueryParam("timestamp")
+	msg_signature := c.QueryParam("msg_signature")
+	nonce := c.QueryParam("nonce")
+	//openid := c.QueryParam("openid")
+	signature := c.QueryParam("signature")
+	timestamp := c.QueryParam("timestamp")
 	m := WxEncrypted{}
 	c.Bind(&m)
-	fmt.Println(m)
-	fmt.Println(c.QueryParams())
+	if sign(timestamp, nonce, "") != signature {
+		fmt.Printf("Hello")
+		return c.NoContent(http.StatusOK)
+	}
+	if sign(timestamp, nonce, m.Encrypt) != msg_signature {
+		fmt.Printf("Hello1")
+		return c.NoContent(http.StatusOK)
+	}
+	fmt.Printf("Hello2")
 	return c.NoContent(http.StatusOK)
 }
 
