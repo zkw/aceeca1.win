@@ -96,7 +96,7 @@ func wx(db *bbolt.DB, c echo.Context) error {
 func wxPost(db *bbolt.DB, c echo.Context) error {
 	msg_signature := c.QueryParam("msg_signature")
 	nonce := c.QueryParam("nonce")
-	//openid := c.QueryParam("openid")
+	openid := c.QueryParam("openid")
 	signature := c.QueryParam("signature")
 	timestamp := c.QueryParam("timestamp")
 	encrypted := WxEncrypted{}
@@ -110,7 +110,8 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	decryptedBytes := decrypt(encrypted.Encrypt)
 	decrypted := WxDecrypted{}
 	xml.Unmarshal(decryptedBytes[20:len(decryptedBytes)-18], &decrypted)
-	fmt.Println(decrypted.Content)
+	fmt.Println(openid)
+	fmt.Println(decrypted)
 	return c.NoContent(http.StatusOK)
 }
 
