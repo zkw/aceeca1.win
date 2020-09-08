@@ -18,6 +18,15 @@ import (
 	"go.etcd.io/bbolt"
 )
 
+type WxTextMessage struct {
+	ToUserName   string
+	FromUserName string
+	CreateTime   int
+	MsgType      string
+	Content      string
+	MsgId        int64
+}
+
 func main() {
 	db, _ := bbolt.Open("database.bbolt", 0600, nil)
 	db.Update(func(tx *bbolt.Tx) error {
@@ -35,6 +44,9 @@ func main() {
 	e.Use(session.Middleware(sessions.NewCookieStore(secret)))
 	e.GET("/ajax/wx", func(c echo.Context) error {
 		return wx(db, c)
+	})
+	e.POST("/ajax/wx", func(c echo.Context) error {
+		return wxPost(db, c)
 	})
 	e.GET("/ajax/user-login-1", func(c echo.Context) error {
 		return userLogin1(db, c)
@@ -58,6 +70,13 @@ func wx(db *bbolt.DB, c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 	return c.String(http.StatusOK, echostr)
+}
+
+func wxPost(db *bbolt.DB, c echo.Context) error {
+	m := WxTextMessage{}
+	c.Bind(&m)
+	fmt.Println(m)
+	return c.NoContent(http.StatusOK)
 }
 
 func userLogin1(db *bbolt.DB, c echo.Context) error {
