@@ -28,6 +28,7 @@ type WxEncrypted struct {
 }
 
 type WxDecrypted struct {
+	XMLName      xml.Name `xml:"xml"`
 	ToUserName   string
 	FromUserName string
 	CreateTime   int
