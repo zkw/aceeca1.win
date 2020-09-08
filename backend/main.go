@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha1"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -19,13 +18,15 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-type WxTextMessage struct {
-	ToUserName   string `xml:"ToUserName"`
-	FromUserName string `xml:"FromUserName"`
-	CreateTime   int    `xml:"CreateTime"`
-	MsgType      string `xml:"MsgType"`
-	Content      string `xml:"Content"`
-	MsgId        int64  `xml:"MsgId"`
+type WxEncrypted struct {
+	encrypt_type  string
+	msg_signature string
+	nonce         string
+	openid        string
+	signature     string
+	timestamp     string
+	ToUserName    string
+	Encrypt       string
 }
 
 func main() {
@@ -74,8 +75,9 @@ func wx(db *bbolt.DB, c echo.Context) error {
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
-	body, _ := ioutil.ReadAll(c.Request().Body)
-	fmt.Println(string(body))
+	m := WxEncrypted{}
+	c.Bind(&m)
+	fmt.Println(m)
 	return c.NoContent(http.StatusOK)
 }
 
