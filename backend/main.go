@@ -43,7 +43,7 @@ const wxResponseTemplate = `
 <xml>
 	<Encrypt><![CDATA[%s]]></Encrypt>
 	<MsgSignature><![CDATA[%s]]></MsgSignature>
-	<TimeStamp>%d</TimeStamp>
+	<TimeStamp>%s</TimeStamp>
 	<Nonce><![CDATA[%s]]></Nonce>
 </xml>
 `
@@ -171,8 +171,10 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	nonce = fmt.Sprintf("%d", rand.Int31())
 	timestamp = fmt.Sprintf("%d", time.Now().Unix())
 	msg_signature = sign(timestamp, nonce, encrypted.Encrypt)
-	return c.String(http.StatusOK, fmt.Sprintf(wxResponseTemplate,
-		encrypted.Encrypt, msg_signature, timestamp, nonce))
+	result := fmt.Sprintf(wxResponseTemplate,
+		encrypted.Encrypt, msg_signature, timestamp, nonce)
+	fmt.Println(result)
+	return c.String(http.StatusOK, result)
 }
 
 func userLogin1(db *bbolt.DB, c echo.Context) error {
