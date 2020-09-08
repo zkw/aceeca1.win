@@ -167,9 +167,9 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 		[]byte(os.Getenv("WX_APPID")),
 	}, []byte{})
 	encrypted.Encrypt = encrypt(decryptedBytes)
-	nonce := fmt.Sprintf("%d", rand.Int31())
-	timestamp := fmt.Sprintf("%d", time.Now().Unix())
-	msg_signature := sign(timestamp, nonce, encrypted.Encrypt)
+	nonce = fmt.Sprintf("%d", rand.Int31())
+	timestamp = fmt.Sprintf("%d", time.Now().Unix())
+	msg_signature = sign(timestamp, nonce, encrypted.Encrypt)
 	return c.String(http.StatusOK, fmt.Sprintf(wxResponseTemplate,
 		encrypted.Encrypt, msg_signature, timestamp, nonce))
 }
