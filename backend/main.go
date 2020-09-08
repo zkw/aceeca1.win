@@ -33,7 +33,7 @@ type WxDecrypted struct {
 	FromUserName string
 	CreateTime   int
 	MsgType      string
-	Content      string
+	Content      string `xml:"Content"`
 	MsgId        int64
 }
 
