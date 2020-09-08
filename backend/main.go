@@ -19,12 +19,12 @@ import (
 )
 
 type WxTextMessage struct {
-	ToUserName   string
-	FromUserName string
-	CreateTime   int
-	MsgType      string
-	Content      string
-	MsgId        int64
+	ToUserName   string `xml:"ToUserName"`
+	FromUserName string `xml:"FromUserName"`
+	CreateTime   int    `xml:"CreateTime"`
+	MsgType      string `xml:"MsgType"`
+	Content      string `xml:"Content"`
+	MsgId        int64  `xml:"MsgId"`
 }
 
 func main() {
