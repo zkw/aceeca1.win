@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/xml"
 	"os"
 	"sort"
 	"strings"
@@ -24,6 +25,15 @@ import (
 type WxEncrypted struct {
 	ToUserName string
 	Encrypt    string
+}
+
+type WxDecrypted struct {
+	ToUserName   string
+	FromUserName string
+	CreateTime   int
+	MsgType      string
+	Content      string
+	MsgId        int64
 }
 
 func main() {
@@ -89,16 +99,18 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	//openid := c.QueryParam("openid")
 	signature := c.QueryParam("signature")
 	timestamp := c.QueryParam("timestamp")
-	m := WxEncrypted{}
-	c.Bind(&m)
+	encrypted := WxEncrypted{}
+	c.Bind(&encrypted)
 	if sign(timestamp, nonce, "") != signature {
 		return c.NoContent(http.StatusOK)
 	}
-	if sign(timestamp, nonce, m.Encrypt) != msg_signature {
+	if sign(timestamp, nonce, encrypted.Encrypt) != msg_signature {
 		return c.NoContent(http.StatusOK)
 	}
-	xml := string(decrypt(m.Encrypt))
-	fmt.Println(xml)
+	xmlBytes := decrypt(encrypted.Encrypt)
+	decrypted := WxDecrypted{}
+	xml.Unmarshal(xmlBytes, &decrypted)
+	fmt.Println(decrypted.Content)
 	return c.NoContent(http.StatusOK)
 }
 
