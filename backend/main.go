@@ -64,11 +64,9 @@ func sign(timestamp, nonce, message string) string {
 }
 
 func decrypt(encrypted string) []byte {
-	bytes := []byte(encrypted)
-	key, err := base64.StdEncoding.DecodeString(os.Getenv("WX_KEY") + "=")
-	fmt.Println(err)
-	block, err := aes.NewCipher(key)
-	fmt.Println(err)
+	bytes := base64.StdEncoding.DecodeString(encrypted)
+	key, _ := base64.StdEncoding.DecodeString(os.Getenv("WX_KEY") + "=")
+	block, _ := aes.NewCipher(key)
 	decrypter := cipher.NewCBCDecrypter(block, key[:block.BlockSize()])
 	decrypter.CryptBlocks(bytes, bytes)
 	return bytes[:len(bytes)-int(bytes[len(bytes)-1])]
