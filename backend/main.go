@@ -73,7 +73,7 @@ func wx(db *bbolt.DB, c echo.Context) error {
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
-	m := WxTextMessage{}
+	m := make(map[string]interface{})
 	c.Bind(&m)
 	fmt.Println(m)
 	return c.NoContent(http.StatusOK)
