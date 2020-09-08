@@ -28,12 +28,11 @@ type WxEncrypted struct {
 }
 
 type WxDecrypted struct {
-	XMLName      xml.Name `xml:"xml"`
 	ToUserName   string
 	FromUserName string
 	CreateTime   int
 	MsgType      string
-	Content      string `xml:"Content"`
+	Content      string
 	MsgId        int64
 }
 
@@ -109,6 +108,7 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 	xmlBytes := decrypt(encrypted.Encrypt)
+	fmt.Println(xmlBytes)
 	decrypted := WxDecrypted{}
 	xml.Unmarshal(xmlBytes, &decrypted)
 	fmt.Println(decrypted.Content)
