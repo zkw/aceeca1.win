@@ -109,7 +109,7 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	}
 	decryptedBytes := decrypt(encrypted.Encrypt)
 	decrypted := WxDecrypted{}
-	xml.Unmarshal(decryptedBytes[16:len(decryptedBytes)-18], &decrypted)
+	xml.Unmarshal(decryptedBytes[20:len(decryptedBytes)-18], &decrypted)
 	fmt.Println(decrypted.Content)
 	return c.NoContent(http.StatusOK)
 }
