@@ -107,10 +107,9 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	if sign(timestamp, nonce, encrypted.Encrypt) != msg_signature {
 		return c.NoContent(http.StatusOK)
 	}
-	xmlBytes := decrypt(encrypted.Encrypt)
-	fmt.Println(xmlBytes)
+	decryptedBytes := decrypt(encrypted.Encrypt)
 	decrypted := WxDecrypted{}
-	xml.Unmarshal(xmlBytes, &decrypted)
+	xml.Unmarshal(decryptedBytes[16:len(decryptedBytes)-18], &decrypted)
 	fmt.Println(decrypted.Content)
 	return c.NoContent(http.StatusOK)
 }
