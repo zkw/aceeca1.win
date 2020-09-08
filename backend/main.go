@@ -74,7 +74,7 @@ func wx(db *bbolt.DB, c echo.Context) error {
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
-	body := ioutil.ReadAll(c.Request().Body)
+	body, _ := ioutil.ReadAll(c.Request().Body)
 	fmt.Println(string(body))
 	return c.NoContent(http.StatusOK)
 }
