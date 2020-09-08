@@ -69,11 +69,11 @@ func wx(db *bbolt.DB, c echo.Context) error {
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
-	msg_signature := c.QueryParam("signature")
-	nonce := c.QueryParam("nonce")
-	openid := c.QueryParam("openid")
-	signature := c.QueryParam("signature")
-	timestamp := c.QueryParam("timestamp")
+	// msg_signature := c.QueryParam("signature")
+	// nonce := c.QueryParam("nonce")
+	// openid := c.QueryParam("openid")
+	// signature := c.QueryParam("signature")
+	// timestamp := c.QueryParam("timestamp")
 	m := WxEncrypted{}
 	c.Bind(&m)
 	fmt.Println(m)
