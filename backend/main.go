@@ -8,14 +8,13 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/xml"
+	"fmt"
+	"math/rand"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
 	"time"
-
-	"fmt"
-	"math/rand"
-	"net/http"
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
