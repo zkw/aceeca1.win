@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -73,7 +74,8 @@ func wx(db *bbolt.DB, c echo.Context) error {
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
-	fmt.Println(c.Request().Body)
+	body := ioutil.ReadAll(c.Request().Body)
+	fmt.Println(string(body))
 	return c.NoContent(http.StatusOK)
 }
 
