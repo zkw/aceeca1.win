@@ -65,7 +65,7 @@ func sign(timestamp, nonce, message string) string {
 
 func decrypt(encrypted string) []byte {
 	bytes := []byte(encrypted)
-	key, err := base64.StdEncoding.DecodeString(os.Getenv("WX_KEY"))
+	key, err := base64.StdEncoding.DecodeString(os.Getenv("WX_KEY") + "=")
 	fmt.Println(err)
 	block, err := aes.NewCipher(key)
 	fmt.Println(err)
