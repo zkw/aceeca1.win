@@ -1,16 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/xml"
 	"os"
 	"sort"
 	"strings"
+	"time"
 
-	//"encoding/gob"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -35,6 +37,15 @@ type WxDecrypted struct {
 	Content      string
 	MsgId        int64
 }
+
+const wxResponseTemplate = `
+<xml>
+	<Encrypt><![CDATA[%s]]></Encrypt>
+	<MsgSignature><![CDATA[%s]]></MsgSignature>
+	<TimeStamp>%d</TimeStamp>
+	<Nonce><![CDATA[%s]]></Nonce>
+</xml>
+`
 
 func main() {
 	db, _ := bbolt.Open("database.bbolt", 0600, nil)
@@ -74,12 +85,23 @@ func sign(timestamp, nonce, message string) string {
 }
 
 func decrypt(encrypted string) []byte {
-	bytes, _ := base64.StdEncoding.DecodeString(encrypted)
 	key, _ := base64.StdEncoding.DecodeString(os.Getenv("WX_KEY") + "=")
 	block, _ := aes.NewCipher(key)
 	decrypter := cipher.NewCBCDecrypter(block, key[:block.BlockSize()])
-	decrypter.CryptBlocks(bytes, bytes)
-	return bytes[:len(bytes)-int(bytes[len(bytes)-1])]
+	byteArray, _ := base64.StdEncoding.DecodeString(encrypted)
+	decrypter.CryptBlocks(byteArray, byteArray)
+	return byteArray[:len(byteArray)-int(byteArray[len(byteArray)-1])]
+}
+
+func encrypt(decrypted []byte) string {
+	key, _ := base64.StdEncoding.DecodeString(os.Getenv("WX_KEY") + "=")
+	block, _ := aes.NewCipher(key)
+	encrypter := cipher.NewCBCEncrypter(block, key[:block.BlockSize()])
+	amountPad := block.BlockSize() - len(decrypted)%block.BlockSize()
+	byteArray := append(decrypted,
+		bytes.Repeat([]byte{byte(amountPad)}, amountPad)...)
+	encrypter.CryptBlocks(byteArray, byteArray)
+	return base64.StdEncoding.EncodeToString(byteArray)
 }
 
 func wx(db *bbolt.DB, c echo.Context) error {
@@ -91,6 +113,18 @@ func wx(db *bbolt.DB, c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 	return c.String(http.StatusOK, echostr)
+}
+
+func isValidToken(s string) bool {
+	if len(s) != 8 {
+		return false
+	}
+	for i := 0; i < 8; i++ {
+		if s[i] < '0' || '9' < s[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
@@ -110,9 +144,34 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	decryptedBytes := decrypt(encrypted.Encrypt)
 	decrypted := WxDecrypted{}
 	xml.Unmarshal(decryptedBytes[20:len(decryptedBytes)-18], &decrypted)
-	fmt.Println(openid)
-	fmt.Println(decrypted)
-	return c.NoContent(http.StatusOK)
+	if !isValidToken(decrypted.Content) {
+		return c.NoContent(http.StatusOK)
+	}
+	db.Update(func(tx *bbolt.Tx) error {
+		tx.Bucket([]byte("Login")).Put([]byte(decrypted.Content), []byte(openid))
+		return nil
+	})
+	decrypted.FromUserName = decrypted.ToUserName
+	decrypted.ToUserName = openid
+	decrypted.MsgType = "text"
+	decrypted.Content = "已收到验证码，请点击网页上的按钮登录。"
+	decryptedBytes, _ = xml.Marshal(decrypted)
+	fmt.Println(string(decryptedBytes))
+	randomString := fmt.Sprintf("%x", rand.Uint64())
+	lenBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(lenBytes, uint32(len(decryptedBytes)))
+	decryptedBytes = bytes.Join([][]byte{
+		[]byte(randomString),
+		lenBytes,
+		decryptedBytes,
+		[]byte(os.Getenv("WX_APPID")),
+	}, []byte{})
+	encrypted.Encrypt = encrypt(decryptedBytes)
+	nonce := fmt.Sprintf("%d", rand.Int31())
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	msg_signature := sign(timestamp, nonce, encrypted.Encrypt)
+	return c.String(http.StatusOK, fmt.Sprintf(wxResponseTemplate,
+		encrypted.Encrypt, msg_signature, timestamp, nonce))
 }
 
 func userLogin1(db *bbolt.DB, c echo.Context) error {
