@@ -165,6 +165,8 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	decrypted.ToUserName = openid
 	decrypted.MsgType = "text"
 	decrypted.Content = "已收到验证码，请点击网页上的按钮登录。"
+	decrypted.MsgId = ""
+	decrypted.CreateTime = int(time.Now().Unix())
 	decryptedBytes, _ = xml.Marshal(decrypted)
 	fmt.Println(string(decryptedBytes))
 	randomString := fmt.Sprintf("%x", rand.Uint64())
