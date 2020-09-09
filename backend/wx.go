@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"aceeca1.win/backend/pb"
 	"github.com/labstack/echo/v4"
 	"go.etcd.io/bbolt"
 )
@@ -84,7 +85,8 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 	db.Update(func(tx *bbolt.Tx) error {
-		tx.Bucket([]byte("Login")).Put([]byte(decrypted.Content), []byte(openid))
+		login := tx.Bucket([]byte(pb.Bucket_LOGIN.String()))
+		login.Put([]byte(decrypted.Content), []byte(openid))
 		return nil
 	})
 	decrypted.FromUserName = decrypted.ToUserName
