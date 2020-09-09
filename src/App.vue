@@ -63,6 +63,7 @@ export default
       @failureCountDown = dismissCountDown
     setNick: ->
       ajax = await @axios.get('/ajax/user-set-nick', nick: @nick)
+      console.log(ajax.data)
       if ajax.data then @successCountDown = 2 else @failureCountDown = 2
   mounted: -> @requireUser()
 </script>
