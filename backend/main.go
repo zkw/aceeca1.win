@@ -167,7 +167,7 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	decrypted.CreateTime = int(time.Now().Unix())
 	decryptedBytes, _ = xml.Marshal(decrypted)
 	fmt.Println(string(decryptedBytes))
-	randomString := fmt.Sprintf("%x", rand.Uint64())
+	randomString := fmt.Sprintf("%016x", rand.Uint64())
 	lenBytes := make([]byte, 4)
 	binary.BigEndian.PutUint32(lenBytes, uint32(len(decryptedBytes)))
 	decryptedBytes = bytes.Join([][]byte{
