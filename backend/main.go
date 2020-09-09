@@ -63,7 +63,9 @@ func main() {
 	e := echo.New()
 	secret := []byte(securecookie.GenerateRandomKey(32))
 	e.Use(session.Middleware(sessions.NewCookieStore(secret)))
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:8080"},
+	}))
 	e.GET("/ajax/wx", func(c echo.Context) error {
 		return wx(db, c)
 	})
@@ -200,7 +202,11 @@ func userLogin1(db *bbolt.DB, c echo.Context) error {
 
 func userLogin2(db *bbolt.DB, c echo.Context) error {
 	s, _ := session.Get("session", c)
-	token := s.Values["token"].(string)
+	tokenI := s.Values["token"]
+	if tokenI == nil {
+		return c.NoContent(http.StatusOK)
+	}
+	token := tokenI.(string)
 	id := ""
 	db.View(func(tx *bbolt.Tx) error {
 		login := tx.Bucket([]byte("Login"))

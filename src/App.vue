@@ -18,8 +18,8 @@
       br
       | 并发送验证码：
       h1.text-center {{ getToken() }}
-      b-button.m-2(variant="primary") 我已发送，继续登录
-      b-button.m-2(variant="danger") 取消
+      b-button.m-2(variant="primary" @click="login") 我已发送，继续登录
+      b-button.m-2(variant="danger" v-b-toggle.login) 取消
   router-view
 </template>
 
@@ -30,11 +30,16 @@ export default
     user: null
   methods:
     getToken: -> if @token then @token else @requireToken()
-    getUser: -> if @user || @requireUser() then @user else '登录'
+    getUser: ->
+      if @user then @user else '登录'
+    login: ->
+      ajax = await @axios.get('https://wx.aceeca1.win/ajax/user-login-2')
+      @user = ajax.data
     requireToken: ->
       ajax = await @axios.get('https://wx.aceeca1.win/ajax/user-login-1')
       @token = ajax.data
     requireUser: ->
       ajax = await @axios.get('https://wx.aceeca1.win/ajax/user-status')
       @user = ajax.data
+  mounted: -> @requireUser()
 </script>
