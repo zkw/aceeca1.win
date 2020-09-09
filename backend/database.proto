@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package protobuf;
+package pb;
 
-option go_package = "aceeca1.win/backend/proto";
+option go_package = "aceeca1.win/backend/pb";
 
 enum Bucket {
     USER = 0;

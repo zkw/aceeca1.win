@@ -1,7 +1,7 @@
 package main
 
 import (
-	"aceeca1.win/backend/proto"
+	"aceeca1.win/backend/pb"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -23,7 +23,7 @@ func main() {
 
 func createBuckets(db *bbolt.DB) {
 	db.Update(func(tx *bbolt.Tx) error {
-		for _, name := range proto.Bucket_name {
+		for _, name := range pb.Bucket_name {
 			tx.CreateBucketIfNotExists([]byte(name))
 		}
 		return nil
