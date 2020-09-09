@@ -70,6 +70,9 @@ func main() {
 	e.POST("/ajax/wx", func(c echo.Context) error {
 		return wxPost(db, c)
 	})
+	e.GET("/ajax/user-status", func(c echo.Context) error {
+		return userStatus(db, c)
+	})
 	e.GET("/ajax/user-login-1", func(c echo.Context) error {
 		return userLogin1(db, c)
 	})
@@ -176,6 +179,11 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 		encrypted.Encrypt, msg_signature, timestamp, nonce)
 	fmt.Println(result)
 	return c.String(http.StatusOK, result)
+}
+
+func userStatus(db *bbolt.DB, c echo.Context) error {
+	s, _ := session.Get("session", c)
+	return c.String(http.StatusOK, s.Values["id"].(string))
 }
 
 func userLogin1(db *bbolt.DB, c echo.Context) error {
