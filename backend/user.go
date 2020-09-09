@@ -25,6 +25,9 @@ func registerUser(e *echo.Echo, db *bbolt.DB) {
 	e.GET("/ajax/user-logout", func(c echo.Context) error {
 		return userLogout(db, c)
 	})
+	e.GET("/ajax/user-set-nick", func(c echo.Context) error {
+		return userSetNick(db, c)
+	})
 }
 
 func userStatus(db *bbolt.DB, c echo.Context) error {
@@ -78,6 +81,17 @@ func userLogout(db *bbolt.DB, c echo.Context) error {
 	delete(s.Values, "id")
 	s.Save(c.Request(), c.Response())
 	return c.NoContent(http.StatusOK)
+}
+
+func userSetNick(db *bbolt.DB, c echo.Context) error {
+	s, _ := session.Get("session", c)
+	id := s.Values["id"]
+	if id == nil {
+		return c.NoContent(http.StatusOK)
+	}
+	nick := c.QueryParam("nick")
+	setNick(db, id.(string), nick)
+	return c.String(http.StatusOK, nick)
 }
 
 func isValidToken(s string) bool {
