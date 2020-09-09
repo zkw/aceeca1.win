@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package protobuf;
+
+option go_package = "aceeca1.win/backend/proto";
+
+enum Bucket {
+    USER = 0;
+    LOGIN = 1;
+    SITE = 2;
+    ARTICLE = 3;
+    COMMENT = 4;
+    RESOURCE = 5;
+}
