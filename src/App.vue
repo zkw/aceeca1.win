@@ -9,15 +9,15 @@
         b-nav-item-dropdown(text="特色内容")
       b-navbar-nav.ml-auto
         b-nav-item-dropdown(:text="getUser()" right)
-          b-dropdown-item(v-if="!user" v-b-toggle.login) 微信登录
+          b-dropdown-item(v-if="!user" v-b-toggle.login @click="requireToken") 微信登录
           b-dropdown-item(v-if="user") 修改昵称
-          b-dropdown-item(v-if="user") 登出
+          b-dropdown-item(v-if="user" @click="logout") 登出
   b-sidebar#login(lazy bg-variant="dark" text-variant="light" right)
     b-card.mt-3(bg-variant="info")
       | 请微信关注“张昆玮”公众号，
       br
       | 并发送验证码：
-      h1.text-center {{ getToken() }}
+      h1.text-center {{ token }}
       b-button.m-2(variant="primary" v-b-toggle.login @click="login") 我已发送，继续登录
       b-button.m-2(variant="danger" v-b-toggle.login) 取消
   b-alert(:show="successCountDown" @dismiss-count-down="successCountDownChanged") 登录成功
@@ -37,15 +37,18 @@ export default
     getUser: ->
       if @user then @user else '登录'
     login: ->
-      ajax = await @axios.get('https://wx.aceeca1.win/ajax/user-login-2')
+      ajax = await @axios.get('/ajax/user-login-2')
       @user = ajax.data
       if @user then @successCountDown = 3 else @failureCountDown = 3
+    logout: ->
+      ajax = await @axios.get('/ajax/user-logout')
+      @user = null
     requireToken: ->
-      ajax = await @axios.get('https://wx.aceeca1.win/ajax/user-login-1')
+      console.log('require token')
+      ajax = await @axios.get('/ajax/user-login-1')
       @token = ajax.data
     requireUser: ->
-      ajax = await @axios.get('https://wx.aceeca1.win/ajax/user-status')
-      console.log(ajax.data)
+      ajax = await @axios.get('/ajax/user-status')
       @user = ajax.data
     successCountDownChanged: (dismissCountDown) ->
       @successCountDown = dismissCountDown

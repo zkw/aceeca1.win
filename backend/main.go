@@ -81,6 +81,9 @@ func main() {
 	e.GET("/ajax/user-login-2", func(c echo.Context) error {
 		return userLogin2(db, c)
 	})
+	e.GET("/ajax/user-logout", func(c echo.Context) error {
+		return userLogout(db, c)
+	})
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
@@ -222,4 +225,11 @@ func userLogin2(db *bbolt.DB, c echo.Context) error {
 	s.Values["id"] = id
 	s.Save(c.Request(), c.Response())
 	return c.String(http.StatusOK, id)
+}
+
+func userLogout(db *bbolt.DB, c echo.Context) error {
+	s, _ := session.Get("session", c)
+	delete(s.Values, "id")
+	s.Save(c.Request(), c.Response())
+	return c.NoContent(http.StatusOK)
 }

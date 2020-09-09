@@ -36,5 +36,10 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "vue": {
+      "devServer": {
+          "proxy": "https://wx.aceeca1.win"
+      }
+  }
 }
