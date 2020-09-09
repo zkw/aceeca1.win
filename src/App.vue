@@ -30,7 +30,7 @@ export default
     user: null
   methods:
     getToken: -> if @token then @token else @requireToken()
-    getUser: -> if @user || requireUser() then @user else '登录'
+    getUser: -> if @user || @requireUser() then @user else '登录'
     requireToken: ->
       ajax = await @axios.get('https://wx.aceeca1.win/ajax/user-login-1')
       @token = ajax.data

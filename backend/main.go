@@ -183,6 +183,9 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 
 func userStatus(db *bbolt.DB, c echo.Context) error {
 	s, _ := session.Get("session", c)
+	if s == nil {
+		return c.NoContent(http.StatusOK)
+	}
 	return c.String(http.StatusOK, s.Values["id"].(string))
 }
 
