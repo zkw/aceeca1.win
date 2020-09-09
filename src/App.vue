@@ -9,7 +9,9 @@
         b-nav-item-dropdown(text="特色内容")
       b-navbar-nav.ml-auto
         b-nav-item-dropdown(:text="getUser()" right)
-          b-dropdown-item 登出
+          b-dropdown-item(v-if="!user" v-b-toggle.login) 微信登录
+          b-dropdown-item(v-if="user") 修改昵称
+          b-dropdown-item(v-if="user") 登出
   router-view
 </template>
 
@@ -18,5 +20,5 @@ export default
   data: ->
     user: null
   methods:
-    getUser: -> if @user? then @user else '登录'
+    getUser: -> if @user then @user else '登录'
 </script>
