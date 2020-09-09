@@ -12,13 +12,25 @@
           b-dropdown-item(v-if="!user" v-b-toggle.login) 微信登录
           b-dropdown-item(v-if="user") 修改昵称
           b-dropdown-item(v-if="user") 登出
+  b-sidebar#login(lazy bg-variant="dark" text-variant="light" right)
+    b-card.mt-3(bg-variant="info")
+      | 请微信关注“张昆玮”公众号，
+      br
+      | 并发送验证码：
+      h1.text-center {{ getToken() }}
+      b-button.m-2(variant="primary") 我已发送，继续登录
+      b-button.m-2(variant="danger") 取消
   router-view
 </template>
 
 <script lang="coffee">
 export default
   data: ->
+    token: null
     user: null
   methods:
+    getToken: -> if @token then @token else @requireToken()
     getUser: -> if @user then @user else '登录'
+    requireToken: ->
+      @token = await @axios.get('https://wx.aceeca1.win/ajax/user-login-1')
 </script>

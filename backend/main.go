@@ -62,6 +62,7 @@ func main() {
 	e := echo.New()
 	secret := []byte(securecookie.GenerateRandomKey(32))
 	e.Use(session.Middleware(sessions.NewCookieStore(secret)))
+	e.Use(middleware.CORS())
 	e.GET("/ajax/wx", func(c echo.Context) error {
 		return wx(db, c)
 	})
