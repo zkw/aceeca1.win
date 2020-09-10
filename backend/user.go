@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -97,7 +98,10 @@ func userSetNick(db *bbolt.DB, c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 	nick := c.QueryParam("nick")
-	return c.String(http.StatusOK, setNick(db, id.(string), nick))
+	if setNick(db, id.(string), nick) != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	return c.NoContent(http.StatusOK)
 }
 
 func userList(db *bbolt.DB, c echo.Context) error {
@@ -176,16 +180,19 @@ func getNick(db *bbolt.DB, id string) string {
 		return nil
 	})
 	if len(nick) == 0 {
-		return setNick(db, id, "微信用户")
+		defaultNick := "微信用户"
+		setNick(db, id, defaultNick)
+		return defaultNick
 	}
 	return nick
 }
 
-func setNick(db *bbolt.DB, id string, nick string) string {
-	if !checkNick(nick) {
-		return ""
+func setNick(db *bbolt.DB, id string, nick string) error {
+	err := checkNick(nick)
+	if err != nil {
+		return err
 	}
-	db.Update(func(tx *bbolt.Tx) error {
+	return db.Update(func(tx *bbolt.Tx) error {
 		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
 		result := user.Get([]byte(id))
 		resultProto := pb.User{}
@@ -197,9 +204,11 @@ func setNick(db *bbolt.DB, id string, nick string) string {
 		user.Put([]byte(id), data)
 		return nil
 	})
-	return nick
 }
 
-func checkNick(nick string) bool {
-	return 6 <= len(nick)
+func checkNick(nick string) error {
+	if len(nick) < 6 {
+		return errors.New("昵称太短")
+	}
+	return nil
 }
