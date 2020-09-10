@@ -39,6 +39,9 @@
   ],
   "vue": {
       "devServer": {
+          "public": "aceeca1.win:8000",
+          "host": "0.0.0.0",
+          "port": 8000,
           "proxy": "https://wx.aceeca1.win"
       }
   }

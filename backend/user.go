@@ -90,8 +90,7 @@ func userSetNick(db *bbolt.DB, c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 	nick := c.QueryParam("nick")
-	setNick(db, id.(string), nick)
-	return c.String(http.StatusOK, nick)
+	return c.String(http.StatusOK, setNick(db, id.(string), nick))
 }
 
 func isValidToken(s string) bool {
@@ -125,7 +124,10 @@ func getNick(db *bbolt.DB, id string) string {
 }
 
 func setNick(db *bbolt.DB, id string, nick string) string {
-	db.View(func(tx *bbolt.Tx) error {
+	if !checkNick(nick) {
+		return ""
+	}
+	db.Update(func(tx *bbolt.Tx) error {
 		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
 		result := user.Get([]byte(id))
 		resultProto := pb.User{}
@@ -138,4 +140,8 @@ func setNick(db *bbolt.DB, id string, nick string) string {
 		return nil
 	})
 	return nick
+}
+
+func checkNick(nick string) bool {
+	return 6 <= len(nick)
 }

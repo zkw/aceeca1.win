@@ -24,7 +24,8 @@
       b-button.m-2(variant="danger" v-b-toggle.login) 取消
   b-sidebar#set-nick(lazy bg-variant="dark" text-variant="light" right)
     b-card.mt-3(bg-variant="info")
-      .m-2 当前昵称: {{ user }}
+      .m-2 <b>当前昵称:</b>  {{ user }}
+      .m-2 <b>昵称要求:</b> 六个字符或两个汉字以上
       b-form-input.m-2(v-model="nick" placeholder="新的昵称")
       b-button.m-2(variant="primary" v-b-toggle.set-nick @click="setNick") 修改
       b-button.m-2(variant="danger" v-b-toggle.set-nick) 取消
@@ -51,7 +52,6 @@ export default
       ajax = await @axios.get('/ajax/user-logout')
       @user = null
     requireToken: ->
-      console.log('require token')
       ajax = await @axios.get('/ajax/user-login-1')
       @token = ajax.data
     requireUser: ->
@@ -62,7 +62,11 @@ export default
     failureCountDownChanged: (dismissCountDown) ->
       @failureCountDown = dismissCountDown
     setNick: ->
-      ajax = await @axios.get('/ajax/user-set-nick', nick: @nick)
-      if ajax.data then @successCountDown = 2 else @failureCountDown = 2
+      ajax = await @axios.get('/ajax/user-set-nick', params: nick: @nick)
+      if ajax.data.length
+        @user = ajax.data
+        @successCountDown = 2 
+      else 
+        @failureCountDown = 2
   mounted: -> @requireUser()
 </script>

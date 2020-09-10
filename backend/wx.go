@@ -21,12 +21,12 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-type WxEncrypted struct {
+type wxEncrypted struct {
 	ToUserName string
 	Encrypt    string
 }
 
-type WxDecrypted struct {
+type wxDecrypted struct {
 	XMLName      xml.Name `xml:"xml"`
 	ToUserName   string
 	FromUserName string
@@ -65,21 +65,21 @@ func wx(db *bbolt.DB, c echo.Context) error {
 }
 
 func wxPost(db *bbolt.DB, c echo.Context) error {
-	msg_signature := c.QueryParam("msg_signature")
+	msgSignature := c.QueryParam("msg_signature")
 	nonce := c.QueryParam("nonce")
 	openid := c.QueryParam("openid")
 	signature := c.QueryParam("signature")
 	timestamp := c.QueryParam("timestamp")
-	encrypted := WxEncrypted{}
+	encrypted := wxEncrypted{}
 	c.Bind(&encrypted)
 	if wxSign(timestamp, nonce, "") != signature {
 		return c.NoContent(http.StatusOK)
 	}
-	if wxSign(timestamp, nonce, encrypted.Encrypt) != msg_signature {
+	if wxSign(timestamp, nonce, encrypted.Encrypt) != msgSignature {
 		return c.NoContent(http.StatusOK)
 	}
 	decryptedBytes := wxDecrypt(encrypted.Encrypt)
-	decrypted := WxDecrypted{}
+	decrypted := wxDecrypted{}
 	xml.Unmarshal(decryptedBytes[20:len(decryptedBytes)-18], &decrypted)
 	if !isValidToken(decrypted.Content) {
 		return c.NoContent(http.StatusOK)
@@ -107,9 +107,9 @@ func wxPost(db *bbolt.DB, c echo.Context) error {
 	encrypted.Encrypt = wxEncrypt(decryptedBytes)
 	nonce = fmt.Sprintf("%d", rand.Int31())
 	timestamp = fmt.Sprintf("%d", time.Now().Unix())
-	msg_signature = wxSign(timestamp, nonce, encrypted.Encrypt)
+	msgSignature = wxSign(timestamp, nonce, encrypted.Encrypt)
 	result := fmt.Sprintf(wxResponseTemplate,
-		encrypted.Encrypt, msg_signature, timestamp, nonce)
+		encrypted.Encrypt, msgSignature, timestamp, nonce)
 	return c.String(http.StatusOK, result)
 }
 
