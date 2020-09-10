@@ -12,6 +12,8 @@
           b-dropdown-item(v-if="!user" v-b-toggle.login @click="requireToken") 微信登录
           b-dropdown-item(v-if="user" v-b-toggle.set-nick) 修改昵称
           b-dropdown-item(v-if="user" @click="logout") 登出
+          b-dropdown-divider
+          b-dropdown-item(to="/master") 进入管理后台
   b-alert(:show="successCountDown" @dismiss-count-down="successCountDownChanged") 成功
   b-alert(variant="danger" :show="failureCountDown" @dismiss-count-down="failureCountDownChanged") 失败
   b-sidebar#login(lazy bg-variant="dark" text-variant="light" right)
@@ -66,7 +68,7 @@ export default
       if ajax.data.length
         @user = ajax.data
         @successCountDown = 2
-      else 
+      else
         @failureCountDown = 2
   mounted: -> @requireUser()
 </script>

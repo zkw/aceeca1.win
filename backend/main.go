@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
+	"fmt"
+
 	"aceeca1.win/backend/pb"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -28,4 +31,9 @@ func createBuckets(db *bbolt.DB) {
 		}
 		return nil
 	})
+}
+
+func checkMasterPassword(master string) bool {
+	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(master)))
+	return hash == "bda88f8614f72aaecdd0864f812a88493ed9ed093d3ad5fcbedd8c0f57b84baa"
 }

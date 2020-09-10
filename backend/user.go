@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 
 	"aceeca1.win/backend/pb"
 	"github.com/labstack/echo-contrib/session"
@@ -27,6 +28,12 @@ func registerUser(e *echo.Echo, db *bbolt.DB) {
 	})
 	e.GET("/ajax/user-set-nick", func(c echo.Context) error {
 		return userSetNick(db, c)
+	})
+	e.GET("/ajax/user-list", func(c echo.Context) error {
+		return userList(db, c)
+	})
+	e.GET("/ajax/user-grant-permission-by-root", func(c echo.Context) error {
+		return userGrantPermissionByRoot(db, c)
 	})
 }
 
@@ -56,7 +63,7 @@ func userLogin2(db *bbolt.DB, c echo.Context) error {
 	s, _ := session.Get("session", c)
 	tokenI := s.Values["token"]
 	if tokenI == nil {
-		return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusForbidden)
 	}
 	token := tokenI.(string)
 	id := ""
@@ -69,7 +76,7 @@ func userLogin2(db *bbolt.DB, c echo.Context) error {
 		return nil
 	})
 	if len(id) == 0 {
-		return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusForbidden)
 	}
 	s.Values["id"] = id
 	s.Save(c.Request(), c.Response())
@@ -87,10 +94,61 @@ func userSetNick(db *bbolt.DB, c echo.Context) error {
 	s, _ := session.Get("session", c)
 	id := s.Values["id"]
 	if id == nil {
-		return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusForbidden)
 	}
 	nick := c.QueryParam("nick")
 	return c.String(http.StatusOK, setNick(db, id.(string), nick))
+}
+
+func userList(db *bbolt.DB, c echo.Context) error {
+	query := c.QueryParam("query")
+	result := make(map[string]string)
+	db.View(func(tx *bbolt.Tx) error {
+		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
+		user.ForEach(func(k, v []byte) error {
+			vProto := pb.User{}
+			proto.Unmarshal(v, &vProto)
+			if strings.Contains(vProto.Nick, query) {
+				result[string(k)] = vProto.Nick
+			}
+			return nil
+		})
+		return nil
+	})
+	return c.JSON(http.StatusOK, result)
+}
+
+func userGrantPermissionByRoot(db *bbolt.DB, c echo.Context) error {
+	master := c.QueryParam("master-password")
+	if !checkMasterPassword(master) {
+		return c.NoContent(http.StatusForbidden)
+	}
+	from := c.QueryParam("from")
+	to := c.QueryParam("to")
+	role := c.QueryParam("role")
+	roleNumber, ok := pb.User_Permission_value[role]
+	if !ok {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	rolePermission := pb.User_Permission(roleNumber)
+	db.Update(func(tx *bbolt.Tx) error {
+		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
+		result := user.Get([]byte(from))
+		if result == nil {
+			ok = false
+			return nil
+		}
+		resultProto := pb.User{}
+		proto.Unmarshal(result, &resultProto)
+		resultProto.Role[to] = rolePermission
+		data, _ := proto.Marshal(&resultProto)
+		user.Put([]byte(from), data)
+		return nil
+	})
+	if !ok {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	return c.NoContent(http.StatusOK)
 }
 
 func isValidToken(s string) bool {

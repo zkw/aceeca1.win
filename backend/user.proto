@@ -14,5 +14,4 @@ message User {
     }
 
     map<string, Permission> role = 3;
-    map<string, Permission> manager = 4;
 }
