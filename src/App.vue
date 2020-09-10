@@ -65,7 +65,7 @@ export default
       ajax = await @axios.get('/ajax/user-set-nick', params: nick: @nick)
       if ajax.data.length
         @user = ajax.data
-        @successCountDown = 2 
+        @successCountDown = 2
       else 
         @failureCountDown = 2
   mounted: -> @requireUser()
