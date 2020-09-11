@@ -35,5 +35,5 @@ func createBuckets(db *bbolt.DB) {
 
 func checkMasterPassword(master string) bool {
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(master)))
-	return hash == "bda88f8614f72aaecdd0864f812a88493ed9ed093d3ad5fcbedd8c0f57b84baa"
+	return hash == "1251145c90ac94a49f17a613c16dfd201190627bea741e4a1792a80a1a5e8dfa"
 }

@@ -2,18 +2,15 @@
 .master
   b-card.m-3(no-body)
     b-tabs(card)
-      b-tab(title="主密码增加权限")
+      b-tab(title="主密码修改权限")
         b-form
           b-form-group(label="请输入网站的主密码: ")
             b-form-input(v-model="master" type="password")
-          select-user(v-model="from")
-          b-form-group(label="请输入目标权限: ")
-            b-form-input(v-model="to" type="text")
-          b-form-group(label="请选择权限类别: ")
-            b-form-radio-group(v-model="role")
-              b-form-radio(value="ADMINISTRATOR") 管理员
-              b-form-radio(value="MEMBER") 成员
-          b-button(variant="primary" @click="submit") 提交
+          template(v-if="master")
+            select-user(v-model="user" @input="userSelected")
+            b-form-group(label="请修改该用户的权限: ")
+              b-form-textarea(v-model="role" max-rows="8")
+            b-button(variant="primary" @click="submit") 提交
 </template>
 
 <script lang="coffee">
@@ -24,19 +21,26 @@ export default
     'select-user': SelectUser
   data: ->
     master: null
-    from: null
-    to: null
+    user: null
     role: null
   methods:
+    userSelected: ->
+      if !@user
+        @role = null
+        return
+      ajax = await @axios.post('/ajax/user-view-permission-by-root',
+        MasterPassword: @master
+        ID: @user
+      )
+      @role = ajax.data
     submit: -> 
       try
-        ajax = await @axios.get('/ajax/user-grant-permission-by-root', params:
-          'master-password': @master
-          from: @from
-          to: @to
-          role: @role
+        ajax = await @axios.post('/ajax/user-edit-permission-by-root',
+          MasterPassword: @master
+          ID: @user
+          UserProto: @role
         )
         @$bvModal.msgBoxOk('操作成功完成')
       catch error
-        @$bvModal.msgBoxOk('操作失败: ' + error.response.statusText, okVariant: 'danger')
+        @$bvModal.msgBoxOk('操作失败: ' + error.response.statusText + ' ' + error.response.data, okVariant: 'danger')
 </script>
