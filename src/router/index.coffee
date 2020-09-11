@@ -9,8 +9,8 @@ routes = [
     component: -> import('../views/Home.vue')
   }
   {
-    path: '/master'
-    component: -> import('../views/Master.vue')
+    path: '/setting'
+    component: -> import('../views/Setting.vue')
   }
 ]
 

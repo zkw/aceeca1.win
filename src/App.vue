@@ -13,7 +13,7 @@
           b-dropdown-item(v-if="user" v-b-toggle.set-nick) 修改昵称
           b-dropdown-item(v-if="user" @click="logout") 登出
           b-dropdown-divider
-          b-dropdown-item(to="/master") 进入管理后台
+          b-dropdown-item(to="/setting") 进入管理后台
   b-sidebar#login(bg-variant="dark" text-variant="light" right)
     b-card.mt-3(bg-variant="info")
       | 请微信关注“张昆玮”公众号，

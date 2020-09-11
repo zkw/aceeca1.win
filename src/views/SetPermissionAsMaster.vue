@@ -1,16 +1,12 @@
 <template lang="pug">
-.master
-  b-card.m-3(no-body)
-    b-tabs(card)
-      b-tab(title="主密码修改权限")
-        b-form
-          b-form-group(label="请输入网站的主密码: ")
-            b-form-input(v-model="master" type="password")
-          template(v-if="master")
-            select-user(v-model="user" @input="userSelected")
-            b-form-group(label="请修改该用户的权限: ")
-              b-form-textarea(v-model="role" max-rows="8")
-            b-button(variant="primary" @click="submit") 提交
+b-form
+  b-form-group(label="请输入网站的主密码: ")
+    b-form-input(v-model="master" type="password")
+  template(v-if="master")
+    select-user(v-model="user" @input="userSelected")
+    b-form-group(label="请修改该用户的权限: ")
+      b-form-textarea(v-model="role" max-rows="8")
+    b-button(variant="primary" @click="submit") 提交
 </template>
 
 <script lang="coffee">
