@@ -15,10 +15,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type userRequest struct {
+type requestByMaster struct {
 	MasterPassword string
 	ID             string
 	UserProto      string
+}
+
+type requestByAdministrator struct {
+	User       string
+	Permission string
+	Role       string
 }
 
 func registerUser(e *echo.Echo, db *bbolt.DB) {
@@ -39,6 +45,15 @@ func registerUser(e *echo.Echo, db *bbolt.DB) {
 	})
 	e.GET("/ajax/user-list", func(c echo.Context) error {
 		return userList(db, c)
+	})
+	e.GET("/ajax/user-role-as-administrator", func(c echo.Context) error {
+		return userRoleAsAdministrator(db, c)
+	})
+	e.POST("/ajax/user-edit-permission-by-administrator", func(c echo.Context) error {
+		return userEditPermissionByAdministrator(db, c)
+	})
+	e.POST("/ajax/user-remove-permission-by-administrator", func(c echo.Context) error {
+		return userRemovePermissionByAdministrator(db, c)
 	})
 	e.POST("/ajax/user-view-permission-by-root", func(c echo.Context) error {
 		return userViewPermissionByRoot(db, c)
@@ -132,8 +147,117 @@ func userList(db *bbolt.DB, c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+func userRoleAsAdministrator(db *bbolt.DB, c echo.Context) error {
+	s, _ := session.Get("session", c)
+	id := s.Values["id"]
+	if id == nil {
+		return c.String(http.StatusForbidden, "用户没有登录")
+	}
+	resultArray := []string{}
+	db.View(func(tx *bbolt.Tx) error {
+		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
+		result := user.Get([]byte(id.(string)))
+		resultProto := pb.User{}
+		proto.Unmarshal(result, &resultProto)
+		for k, v := range resultProto.Role {
+			if v == pb.User_ADMINISTRATOR {
+				resultArray = append(resultArray, k)
+			}
+		}
+		return nil
+	})
+	return c.JSON(http.StatusOK, resultArray)
+}
+
+func userEditPermissionByAdministrator(db *bbolt.DB, c echo.Context) error {
+	s, _ := session.Get("session", c)
+	id := s.Values["id"]
+	if id == nil {
+		return c.String(http.StatusForbidden, "用户没有登录")
+	}
+	r := requestByAdministrator{}
+	c.Bind(&r)
+	roleNumber, ok := pb.User_Permission_value[r.Role]
+	if !ok {
+		return c.String(http.StatusBadRequest, "语法错误")
+	}
+	role := pb.User_Permission(roleNumber)
+	var err error
+	db.Update(func(tx *bbolt.Tx) error {
+		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
+		me := user.Get([]byte(id.(string)))
+		meProto := pb.User{}
+		proto.Unmarshal(me, &meProto)
+		if meProto.Role == nil {
+			err = errors.New("用户没有任何权限")
+			return nil
+		}
+		mePermission, ok := meProto.Role[r.Permission]
+		if !ok {
+			err = errors.New("用户没有对应权限")
+			return nil
+		}
+		if mePermission != pb.User_ADMINISTRATOR {
+			err = errors.New("用户不是此权限的管理员")
+			return nil
+		}
+		result := user.Get([]byte(r.User))
+		resultProto := pb.User{}
+		proto.Unmarshal(result, &resultProto)
+		resultProto.Role[r.Permission] = role
+		data, _ := proto.Marshal(&resultProto)
+		user.Put([]byte(r.User), data)
+		return nil
+	})
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func userRemovePermissionByAdministrator(db *bbolt.DB, c echo.Context) error {
+	s, _ := session.Get("session", c)
+	id := s.Values["id"]
+	if id == nil {
+		return c.String(http.StatusForbidden, "用户没有登录")
+	}
+	r := requestByAdministrator{}
+	c.Bind(&r)
+	var err error
+	db.Update(func(tx *bbolt.Tx) error {
+		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
+		me := user.Get([]byte(id.(string)))
+		meProto := pb.User{}
+		proto.Unmarshal(me, &meProto)
+		if meProto.Role == nil {
+			err = errors.New("用户没有任何权限")
+			return nil
+		}
+		mePermission, ok := meProto.Role[r.Permission]
+		if !ok {
+			err = errors.New("用户没有对应权限")
+			return nil
+		}
+		if mePermission != pb.User_ADMINISTRATOR {
+			err = errors.New("用户不是此权限的管理员")
+			return nil
+		}
+		result := user.Get([]byte(r.User))
+		resultProto := pb.User{}
+		proto.Unmarshal(result, &resultProto)
+		delete(resultProto.Role, r.Permission)
+		data, _ := proto.Marshal(&resultProto)
+		user.Put([]byte(r.User), data)
+		return nil
+	})
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	return c.NoContent(http.StatusOK)
+}
+
 func userViewPermissionByRoot(db *bbolt.DB, c echo.Context) error {
-	r := userRequest{}
+	r := requestByMaster{}
 	c.Bind(&r)
 	if !checkMasterPassword(r.MasterPassword) {
 		return c.String(http.StatusForbidden, "主密码错误")
@@ -158,7 +282,7 @@ func userViewPermissionByRoot(db *bbolt.DB, c echo.Context) error {
 }
 
 func userEditPermissionByRoot(db *bbolt.DB, c echo.Context) error {
-	r := userRequest{}
+	r := requestByMaster{}
 	c.Bind(&r)
 	if !checkMasterPassword(r.MasterPassword) {
 		return c.String(http.StatusForbidden, "主密码错误")

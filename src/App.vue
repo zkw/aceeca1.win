@@ -35,9 +35,9 @@
 <script lang="coffee">
 export default
   data: ->
+    user: null
     nick: null
     token: null
-    user: null
   methods:
     getToken: -> if @token then @token else @requireToken()
     getUser: ->
@@ -45,23 +45,23 @@ export default
     login: ->
       try
         ajax = await @axios.get('/ajax/user-login-2')
-        @user = ajax.data
+        @$root.user = @user = ajax.data
         @$bvModal.msgBoxOk('登录成功')
       catch error
         @$bvModal.msgBoxOk('登录失败', okVariant: 'danger')
     logout: ->
       ajax = await @axios.get('/ajax/user-logout')
-      @user = null
+      @$root.user = @user = null
     requireToken: ->
       ajax = await @axios.get('/ajax/user-login-1')
       @token = ajax.data
     requireUser: ->
       ajax = await @axios.get('/ajax/user-status')
-      @user = ajax.data
+      @$root.user = @user = ajax.data
     setNick: ->
       try
         ajax = await @axios.get('/ajax/user-set-nick', params: nick: @nick)
-        @user = @nick
+        @$root.user = @user = @nick
         @$bvModal.msgBoxOk('修改昵称成功')
       catch error
         @$bvModal.msgBoxOk('修改昵称失败', okVariant: 'danger')
