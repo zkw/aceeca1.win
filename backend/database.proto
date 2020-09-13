@@ -11,4 +11,5 @@ enum Bucket {
     ARTICLE = 3;
     COMMENT = 4;
     RESOURCE = 5;
+    PERMISSION = 6;
 }
