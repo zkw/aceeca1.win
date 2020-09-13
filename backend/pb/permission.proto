@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "aceeca1.win/backend/pb";
+
+message Permission {
+    enum UserType {
+        USER = 0;
+    }
+
+    map<string, UserType> user = 3;
+}

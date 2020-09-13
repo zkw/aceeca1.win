@@ -5,7 +5,7 @@ b-form-group(label="请选择用户: ")
     template(v-slot:append)
       b-dropdown(text="搜索并选择" variant="primary" right @show="search")
         b-dropdown-item(v-for="(nick, id) in userList" :key="id" @click="select(id, nick)") {{ nick }}
-  b-button(v-if="value" variant="info" @click="select(null, null)") {{nick}}
+  b-button(v-if="value" variant="info" @click="select(null, null)") {{ nick }}
 </template>
 
 <script lang="coffee">

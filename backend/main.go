@@ -21,6 +21,7 @@ func main() {
 	e.Use(session.Middleware(sessions.NewCookieStore(secret)))
 	registerWX(e, db)
 	registerUser(e, db)
+	registerPermission(e, db)
 	e.Logger.Fatal(e.Start(":1323"))
 }
 

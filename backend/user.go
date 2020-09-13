@@ -15,13 +15,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type requestByMaster struct {
+type requestUserByMaster struct {
 	MasterPassword string
 	ID             string
 	UserProto      string
 }
 
-type requestByAdministrator struct {
+type requestUserByAdministrator struct {
 	User       string
 	Permission string
 	Role       string
@@ -175,7 +175,7 @@ func userEditPermissionByAdministrator(db *bbolt.DB, c echo.Context) error {
 	if id == nil {
 		return c.String(http.StatusForbidden, "用户没有登录")
 	}
-	r := requestByAdministrator{}
+	r := requestUserByAdministrator{}
 	c.Bind(&r)
 	roleNumber, ok := pb.User_Permission_value[r.Role]
 	if !ok {
@@ -221,7 +221,7 @@ func userRemovePermissionByAdministrator(db *bbolt.DB, c echo.Context) error {
 	if id == nil {
 		return c.String(http.StatusForbidden, "用户没有登录")
 	}
-	r := requestByAdministrator{}
+	r := requestUserByAdministrator{}
 	c.Bind(&r)
 	var err error
 	db.Update(func(tx *bbolt.Tx) error {
@@ -257,7 +257,7 @@ func userRemovePermissionByAdministrator(db *bbolt.DB, c echo.Context) error {
 }
 
 func userViewPermissionByRoot(db *bbolt.DB, c echo.Context) error {
-	r := requestByMaster{}
+	r := requestUserByMaster{}
 	c.Bind(&r)
 	if !checkMasterPassword(r.MasterPassword) {
 		return c.String(http.StatusForbidden, "主密码错误")
@@ -282,7 +282,7 @@ func userViewPermissionByRoot(db *bbolt.DB, c echo.Context) error {
 }
 
 func userEditPermissionByRoot(db *bbolt.DB, c echo.Context) error {
-	r := requestByMaster{}
+	r := requestUserByMaster{}
 	c.Bind(&r)
 	if !checkMasterPassword(r.MasterPassword) {
 		return c.String(http.StatusForbidden, "主密码错误")
