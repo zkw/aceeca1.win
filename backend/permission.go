@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"aceeca1.win/backend/pb"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"go.etcd.io/bbolt"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -66,8 +67,42 @@ func permissionEdit(db *bbolt.DB, c echo.Context) error {
 		}
 		return nil
 	})
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
 	return c.NoContent(http.StatusOK)
+}
+
+func permissionMatch(userSide []string, documentSide map[string]pb.DocumentPermission) pb.DocumentPermission {
+	answer := pb.DocumentPermission_NONE
+	for _, i := range userSide {
+		answer1, ok := documentSide[i]
+		if ok && answer1 < answer {
+			answer = answer1
+		}
+	}
+	return answer
+}
+
+func permissionForUser(tx *bbolt.Tx, c echo.Context) []string {
+	answer := []string{}
+	s, _ := session.Get("session", c)
+	id := s.Values["id"]
+	permission := tx.Bucket([]byte(pb.Bucket_PERMISSION.String()))
+	result := permission.Get([]byte("Guest"))
+	if result != nil {
+		resultProto := pb.Permission{}
+		proto.Unmarshal(result, &resultProto)
+		answer = resultProto.User
+	}
+	if id != nil {
+		user := tx.Bucket([]byte(pb.Bucket_USER.String()))
+		result := user.Get([]byte(id.(string)))
+		if result != nil {
+			answer = append(answer, id.(string))
+			resultProto := pb.User{}
+			proto.Unmarshal(result, &resultProto)
+			for i := range resultProto.Role {
+				answer = append(answer, i)
+			}
+		}
+	}
+	return answer
 }

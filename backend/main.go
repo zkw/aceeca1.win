@@ -22,6 +22,9 @@ func main() {
 	registerWX(e, db)
 	registerUser(e, db)
 	registerPermission(e, db)
+	registerSite(e, db)
+	e.Static("/", "../dist")
+	e.File("*", "../dist/index.html")
 	e.Logger.Fatal(e.Start(":1323"))
 }
 

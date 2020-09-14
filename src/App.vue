@@ -1,7 +1,7 @@
 <template lang="pug">
 #app
   b-navbar(toggleable="lg" type="dark" variant="dark")
-    b-navbar-brand(to="/") 张昆玮的博客
+    b-navbar-brand(to="/") {{ siteName }}
     b-navbar-toggle(target="nav-collapse")
     b-collapse#nav-collapse(is-nav)
       b-navbar-nav
@@ -35,6 +35,7 @@
 <script lang="coffee">
 export default
   data: ->
+    siteName: null
     user: null
     nick: null
     token: null
@@ -52,6 +53,9 @@ export default
     logout: ->
       ajax = await @axios.get('/ajax/user-logout')
       @$root.user = @user = null
+    requireSiteInformation: ->
+      ajax = await @axios.get('/ajax/site-information')
+      document.title = @$root.siteName = @siteName = ajax.data.Name
     requireToken: ->
       ajax = await @axios.get('/ajax/user-login-1')
       @token = ajax.data
@@ -65,5 +69,7 @@ export default
         @$bvModal.msgBoxOk('修改昵称成功')
       catch error
         @$bvModal.msgBoxOk('修改昵称失败', okVariant: 'danger')
-  mounted: -> @requireUser()
+  mounted: -> 
+    @requireSiteInformation()
+    @requireUser()
 </script>

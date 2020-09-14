@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "aceeca1.win/backend/pb";
+
+import "article.proto";
+import "permission.proto";
+
+message Site {
+    string id = 1;
+    map<string, DocumentPermission> allowed_user = 2;
+
+    string name = 3;
+    Article about = 4;
+    
+    message Special {
+        string name = 1;
+        Article article = 2;
+
+        repeated Special children = 3;
+    }
+
+    Special special = 5;
+}

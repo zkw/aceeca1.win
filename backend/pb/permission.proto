@@ -5,9 +5,12 @@ package pb;
 option go_package = "aceeca1.win/backend/pb";
 
 message Permission {
-    enum UserType {
-        USER = 0;
-    }
+    repeated string user = 1;
+}
 
-    map<string, UserType> user = 3;
+enum DocumentPermission {
+    ADMINISTRATOR = 0;
+    EDITOR = 1;
+    READER = 2;
+    NONE = 3;
 }
