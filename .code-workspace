@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "aceeca1.win"
+		},
+		{
+			"path": "aceeca1.win/backend"
+		}
+	],
+	"settings": {
+		"protoc": {
+			"options": [
+				"--proto_path=pb"
+			]
+		}
+	}
+}
