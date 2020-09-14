@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "aceeca1.win"
+			"path": "."
 		},
 		{
-			"path": "aceeca1.win/backend"
+			"path": "./backend"
 		}
 	],
 	"settings": {
